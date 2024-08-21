@@ -5,7 +5,8 @@ import os
 import google.generativeai as genai
 
 # Configure the Google API key using st.secrets
-genai.configure(api_key=st.secrets["general"]["GOOGLE_API_KEY"])
+GOOGLE_API_KEY = "AIzaSyBikV0v1ltCUIsVoLProMqJgx88fXNr6T0"
+os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
 def summarize_segment(audio_file_path, start_time, end_time):
     """Summarize a specific segment of the podcast."""
