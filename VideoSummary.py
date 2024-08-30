@@ -20,8 +20,8 @@ def summarize_segment(audio_file_path, start_time, end_time):
             segment.export(tmp_file.name, format="mp3")
             segment_path = tmp_file.name
 
-        # Use the Google Generative AI to summarize the audio segment
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        # Initialize Google Generative AI model
+        model = genai.GenerativeModel("gemini-1.5-flash")  # Ensure this model is valid
         audio_file = genai.upload_file(path=segment_path)
         response = model.generate_content([
             "Please summarize the following podcast segment.",
@@ -79,7 +79,10 @@ with col1:
     audio_file = st.file_uploader("Upload Your Podcast File", type=['wav', 'mp3'])
     if audio_file is not None:
         audio_path = save_uploaded_file(audio_file)  # Save the uploaded file and get the path
-        st.audio(audio_path)
+        if audio_path:
+            st.audio(audio_path)
+        else:
+            st.error("Failed to save the uploaded file. Please try again.")
 
 with col2:
     st.sidebar.header("Segment Settings")
@@ -87,22 +90,25 @@ with col2:
     segment_duration_ms = segment_duration_min * 60 * 1000  # Convert to milliseconds
 
     if st.sidebar.button('Extract Highlights'):
-        if audio_file is not None:
+        if audio_file is not None and audio_path:
             with st.spinner('Processing...'):
-                audio = AudioSegment.from_file(audio_path)
-                total_duration_ms = len(audio)
-                segment_start = 0
-                summaries = []
+                try:
+                    audio = AudioSegment.from_file(audio_path)
+                    total_duration_ms = len(audio)
+                    segment_start = 0
+                    summaries = []
 
-                while segment_start < total_duration_ms:
-                    segment_end = min(segment_start + segment_duration_ms, total_duration_ms)
-                    summary = summarize_segment(audio_path, segment_start, segment_end)
-                    if summary:
-                        summaries.append((segment_start, segment_end, summary))
-                    segment_start += segment_duration_ms
+                    while segment_start < total_duration_ms:
+                        segment_end = min(segment_start + segment_duration_ms, total_duration_ms)
+                        summary = summarize_segment(audio_path, segment_start, segment_end)
+                        if summary:
+                            summaries.append((segment_start, segment_end, summary))
+                        segment_start += segment_duration_ms
 
-                for i, (start, end, summary) in enumerate(summaries):
-                    st.subheader(f"Segment {i + 1}: {start // 1000 // 60}:{start // 1000 % 60:02d} - {end // 1000 // 60}:{end // 1000 % 60:02d}")
-                    st.info(summary)
+                    for i, (start, end, summary) in enumerate(summaries):
+                        st.subheader(f"Segment {i + 1}: {start // 1000 // 60}:{start // 1000 % 60:02d} - {end // 1000 // 60}:{end // 1000 % 60:02d}")
+                        st.info(summary)
+                except Exception as e:
+                    st.error(f"Error during processing: {e}")
         else:
-            st.warning("Please upload a podcast file before extracting highlights.")
+            st.warning("Please upload a podcast file and ensure it is saved correctly before extracting highlights.")
