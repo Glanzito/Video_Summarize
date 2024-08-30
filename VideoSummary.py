@@ -44,7 +44,7 @@ def save_uploaded_file(uploaded_file):
         return None
 
 # Streamlit app interface
-st.set_page_config(page_title="Podcast Highlights Extractor", page_icon=":microphone:", layout="wide")
+st.set_page_config(page_title="Podcast Highlights Extractor by Manyike", page_icon=":microphone:", layout="wide")
 
 # Header
 st.title('Podcast Highlights Extractor')
