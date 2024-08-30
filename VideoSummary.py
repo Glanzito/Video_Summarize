@@ -44,36 +44,65 @@ def save_uploaded_file(uploaded_file):
         return None
 
 # Streamlit app interface
-st.title('Podcast Highlights Extractor')
+st.set_page_config(page_title="Podcast Highlights Extractor", page_icon=":microphone:", layout="wide")
 
-with st.expander("About this app"):
+# Header
+st.title('Podcast Highlights Extractor')
+st.markdown("""
+    <style>
+    .main { 
+        background-color: #f0f2f6; 
+        padding: 2rem; 
+    }
+    .sidebar { 
+        background-color: #ffffff; 
+    }
+    .stButton > button { 
+        background-color: #4CAF50; 
+        color: white; 
+    }
+    .stButton > button:hover { 
+        background-color: #45a049; 
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+with st.expander("About this app", expanded=True):
     st.write("""
         This app processes podcast episodes and extracts key highlights or summaries from the audio.
-        Upload your podcast file in WAV or MP3 format and get concise summaries of each segment.
+        Upload your podcast file in WAV or MP3 format, select the duration of each segment, and click
+        'Extract Highlights' to get concise summaries of each segment.
     """)
 
-audio_file = st.file_uploader("Upload Podcast File", type=['wav', 'mp3'])
-if audio_file is not None:
-    audio_path = save_uploaded_file(audio_file)  # Save the uploaded file and get the path
-    st.audio(audio_path)
+col1, col2 = st.columns([2, 1])
+with col1:
+    audio_file = st.file_uploader("Upload Your Podcast File", type=['wav', 'mp3'])
+    if audio_file is not None:
+        audio_path = save_uploaded_file(audio_file)  # Save the uploaded file and get the path
+        st.audio(audio_path)
 
-    # Assume a fixed segment duration (e.g., 5 minutes) for simplicity
-    segment_duration_ms = 5 * 60 * 1000  # 5 minutes in milliseconds
-    audio = AudioSegment.from_file(audio_path)
-    total_duration_ms = len(audio)
+with col2:
+    st.sidebar.header("Segment Settings")
+    segment_duration_min = st.sidebar.slider("Segment Duration (minutes)", 1, 10, 5)
+    segment_duration_ms = segment_duration_min * 60 * 1000  # Convert to milliseconds
 
-    segment_start = 0
-    summaries = []
-    
-    if st.button('Extract Highlights'):
-        with st.spinner('Processing...'):
-            while segment_start < total_duration_ms:
-                segment_end = min(segment_start + segment_duration_ms, total_duration_ms)
-                summary = summarize_segment(audio_path, segment_start, segment_end)
-                if summary:
-                    summaries.append((segment_start, segment_end, summary))
-                segment_start += segment_duration_ms
+    if st.sidebar.button('Extract Highlights'):
+        if audio_file is not None:
+            with st.spinner('Processing...'):
+                audio = AudioSegment.from_file(audio_path)
+                total_duration_ms = len(audio)
+                segment_start = 0
+                summaries = []
 
-        for i, (start, end, summary) in enumerate(summaries):
-            st.subheader(f"Segment {i + 1}: {start // 1000 // 60}:{start // 1000 % 60:02d} - {end // 1000 // 60}:{end // 1000 % 60:02d}")
-            st.info(summary)
+                while segment_start < total_duration_ms:
+                    segment_end = min(segment_start + segment_duration_ms, total_duration_ms)
+                    summary = summarize_segment(audio_path, segment_start, segment_end)
+                    if summary:
+                        summaries.append((segment_start, segment_end, summary))
+                    segment_start += segment_duration_ms
+
+                for i, (start, end, summary) in enumerate(summaries):
+                    st.subheader(f"Segment {i + 1}: {start // 1000 // 60}:{start // 1000 % 60:02d} - {end // 1000 // 60}:{end // 1000 % 60:02d}")
+                    st.info(summary)
+        else:
+            st.warning("Please upload a podcast file before extracting highlights.")
