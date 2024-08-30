@@ -47,7 +47,7 @@ def save_uploaded_file(uploaded_file):
 st.set_page_config(page_title="Podcast Highlights Extractor by Manyike", page_icon=":microphone:", layout="wide")
 
 # Header
-st.title('Podcast Highlights Extractor')
+st.title('Podcast Highlights Extractor by GLAN')
 st.markdown("""
     <style>
     .main { 
