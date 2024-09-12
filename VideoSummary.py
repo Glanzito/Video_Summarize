@@ -1,7 +1,8 @@
 import streamlit as st
-import google.generativeai as genai
-import PyPDF2
+from pydub import AudioSegment
+import tempfile
 import os
+import google.generativeai as genai
 
 # Configure the Google API key using st.secrets
 GOOGLE_API_KEY = "AIzaSyBikV0v1ltCUIsVoLProMqJgx88fXNr6T0"
