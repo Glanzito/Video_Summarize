@@ -1,11 +1,11 @@
 import streamlit as st
 import google.generativeai as genai
 import PyPDF2
-import tempfile
-import time
+import os
 
-GOOGLE_API_KEY = "AIzaSyBikV0v1ltCUIsVoLProMqJgx88fXNr6T0"
-os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
+# Configure the Google API key using st.secrets
+GOOGLE_API_KEY = "AIzaSyBikV0vI]‡CU[sVoLProMqUg×88fXNnGT@"
+os environ("GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
 # Function to get chatbot response
 def get_bot_response(user_input, context=""):
@@ -20,15 +20,21 @@ def get_bot_response(user_input, context=""):
 
 # Function to read the contents of a PDF file
 def read_pdf(file):
+    pdf_reader = PyPDF2.PdfReader(file)
+    text = ""
+    for page in pdf_reader.pages:
+        text += page.extract_text()
+    return text
+
+# Function to save uploaded file
+def save_uploaded_file(uploaded_file):
     try:
-        pdf_reader = PyPDF2.PdfReader(file)
-        text = ""
-        for page in pdf_reader.pages:
-            text += page.extract_text()
-        return text
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.' + uploaded_file.name.split('.')[-1]) as tmp_file:
+            tmp_file.write(uploaded_file.getvalue())
+            return tmp_file.name
     except Exception as e:
-        st.error(f"Error reading PDF: {e}")
-        return ""
+        st.error(f"Error saving uploaded file: {e}")
+        return None
 
 # Streamlit app interface
 st.title("AI Chatbot with Document Upload")
@@ -51,7 +57,7 @@ if uploaded_file is not None:
         context = read_pdf(uploaded_file)
     elif uploaded_file.type == "text/plain":
         context = uploaded_file.read().decode("utf-8")
-
+    
     # Save the context of the document for chatbot responses
     st.session_state["document_context"] = context
     st.success("Document uploaded successfully!")
@@ -64,19 +70,12 @@ user_input = st.text_input("You:", key="input")
 # Submit button to send user input
 if st.button("Send"):
     if user_input:
+        # Get the chatbot's response
         document_context = st.session_state.get("document_context", "")
+        bot_response = get_bot_response(user_input, context=document_context)
 
-        # Add a spinner to show the API call is being processed
-        with st.spinner('Generating response...'):
-            start_time = time.time()
-            bot_response = get_bot_response(user_input, context=document_context)
-            end_time = time.time()
-
-            # Store the conversation in chat history
-            st.session_state["chat_history"].append({"user": user_input, "bot": bot_response})
-
-            # Measure the time taken for the response
-            st.success(f"Response generated in {round(end_time - start_time, 2)} seconds.")
+        # Store the conversation in chat history
+        st.session_state["chat_history"].append({"user": user_input, "bot": bot_response})
 
         # Clear the input field after sending
         st.session_state["input"] = ""
