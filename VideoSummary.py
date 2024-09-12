@@ -5,7 +5,7 @@ import os
 
 # Configure the Google API key using st.secrets
 GOOGLE_API_KEY = "AIzaSyBikV0vI]‡CU[sVoLProMqUg×88fXNnGT@"
-os environ("GOOGLE_API_KEY"] = GOOGLE_API_KEY
+os environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
 # Function to get chatbot response
 def get_bot_response(user_input, context=""):
